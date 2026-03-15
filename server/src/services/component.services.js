@@ -6,7 +6,9 @@ const createComponentService = async (
   name,
   image,
   description,
-  props,
+  component_working,
+  component_not_working,
+  component_in_use,
   remark,
   category
 ) => {
@@ -14,8 +16,9 @@ const createComponentService = async (
     !name ||
     !image ||
     !category ||
-    !Array.isArray(props) ||
-    props.length === 0
+    component_working === undefined ||
+    component_not_working === undefined ||
+    component_in_use === undefined
   ) {
     throw new ApiError(404, "Required fields are missing or invalid");
   }
@@ -24,7 +27,9 @@ const createComponentService = async (
     name,
     image,
     description: description ?? "",
-    props,
+    component_working,
+    component_not_working,
+    component_in_use,
     remark: remark ?? "",
     category,
   });
@@ -33,14 +38,19 @@ const createComponentService = async (
   return component;
 };
 
-const updateComponentService = async (id, props, remark) => {
-  if (!id || !props || !remark) {
+const updateComponentService = async (id, component_working, component_not_working, component_in_use, remark) => {
+  if (!id || component_working === undefined || component_not_working === undefined || component_in_use === undefined || !remark) {
     throw new ApiError(404, "All fields are required");
   }
 
   const component = await Components.findById(id);
+  if (!component) {
+    throw new ApiError(404, "Component not found");
+  }
 
-  component.props = props;
+  component.component_working = component_working;
+  component.component_not_working = component_not_working;
+  component.component_in_use = component_in_use;
   component.remark = remark;
 
   await component.save({ validateBeforeSave: false });
@@ -52,10 +62,15 @@ const updateComponentService = async (id, props, remark) => {
 
 const deleteComponentService = async (id) => {
   if (!id) {
-    throw new Error("Id is required");
+    throw new ApiError(400, "Id is required");
   }
 
-  await Components.findByIdAndDelete(id);
+  const component = await Components.findByIdAndDelete(id);
+  if (!component) {
+    throw new ApiError(404, "Component not found");
+  }
+
+  return component;
 };
 
 const getComponentWithCategoryService = async (category) => {
@@ -72,6 +87,8 @@ const autocompleteComponentsService = async (query, limit = 5) => {
   if (!query) {
     throw new ApiError(404, "Query is required");
   }
+  const parsedLimit = Number(limit) || 5;
+
   const result = await Components.aggregate([
     {
       $search: {
@@ -85,7 +102,7 @@ const autocompleteComponentsService = async (query, limit = 5) => {
         },
       },
     },
-    { $limit: limit },
+    { $limit: parsedLimit },
   ]);
 
   return result;
@@ -99,7 +116,9 @@ const searchComponentsWithPaginationService = async (
   if (!query) {
     throw new ApiError(404, "Query is required");
   }
-  const skip = (page - 1) * limit;
+  const parsedPage = Number(page) || 1;
+  const parsedLimit = Number(limit) || 10;
+  const skip = (parsedPage - 1) * parsedLimit;
 
   const result = await Components.aggregate([
     {
@@ -126,26 +145,29 @@ const searchComponentsWithPaginationService = async (
     },
     {
       $facet: {
-        data: [{ $skip: skip }, { $limit: limit }],
+        data: [{ $skip: skip }, { $limit: parsedLimit }],
         totalCount: [{ $count: "count" }],
       },
     },
   ]);
 
   return {
-    data: result[0].data, // full documents
+    data: result[0].data,
     total: result[0].totalCount[0]?.count || 0,
-    page,
-    limit,
+    page: parsedPage,
+    limit: parsedLimit,
   };
 };
 
 const getComponentByIdService = async (id) => {
   if (!id) {
-    throw new Error(400, "All fields are required");
+    throw new ApiError(400, "Id is required");
   }
 
   const component = await Components.findById(id);
+  if (!component) {
+    throw new ApiError(404, "Component not found");
+  }
 
   return component;
 };

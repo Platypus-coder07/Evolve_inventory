@@ -11,14 +11,24 @@ import {
 } from "../services/component.services.js";
 
 const createComponent = asyncHandler(async (req, res) => {
-  const { name, image, description, remark, props, category } = req.body;
-  // console.log(req.body);
+  const {
+    name,
+    image,
+    description,
+    component_working,
+    component_not_working,
+    component_in_use,
+    remark,
+    category,
+  } = req.body;
 
   const component = await createComponentService(
     name,
     image,
     description,
-    props,
+    component_working,
+    component_not_working,
+    component_in_use,
     remark,
     category
   );
@@ -30,9 +40,21 @@ const createComponent = asyncHandler(async (req, res) => {
 });
 
 const updateComponent = asyncHandler(async (req, res) => {
-  const { id, props, remark } = req.body;
+  const {
+    id,
+    component_working,
+    component_not_working,
+    component_in_use,
+    remark,
+  } = req.body;
 
-  const component = await updateComponentService(id, props, remark);
+  const component = await updateComponentService(
+    id,
+    component_working,
+    component_not_working,
+    component_in_use,
+    remark
+  );
 
   return res
     .status(200)

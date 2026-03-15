@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
-import { requestStatus } from "../constants/constants.js";
+import { requestStatus, requestType } from "../constants/constants.js";
 
 const requestSchema = new mongoose.Schema(
   {
     component: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "components",
-      required: true, 
+      required: true,
       index: true,
     },
     user: {
@@ -32,6 +32,11 @@ const requestSchema = new mongoose.Schema(
         requestStatus.REJECTED,
       ],
       default: requestStatus.PENDING,
+    },
+    type: {
+      type: String,
+      enum: Object.values(requestType),
+      required: true,
     },
   },
   { timestamps: true }

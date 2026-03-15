@@ -29,3 +29,8 @@ export const componentCategory = {
   COMMUNICATION: "communication",
   OTHER: "other",
 };
+
+export const requestType = {
+  REQUEST: "request",
+  SUBMIT: "submit",
+};

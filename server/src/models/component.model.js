@@ -1,21 +1,20 @@
 import mongoose from "mongoose";
 import { componentStatus, componentCategory } from "../constants/constants.js";
-
-const propsSchema = new mongoose.Schema({
-  quantity_in_stock: {
-    type: Number,
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: [
-      componentStatus.WORKING,
-      componentStatus.NOT_WORKING,
-      componentStatus.IN_USE,
-    ],
-    default: componentStatus.WORKING,
-  },
-});
+/**
+ * Component Model
+ * _id: ObjectId
+ * name: String
+ * image: String (URL from CDN(cloudinary))
+ * description: String
+ * total_quantity: Number
+ * component_working: Number
+ * component_not_working: Number
+ * component_in_use: Number
+ * remark: String
+ * category: String 
+ * updatedAt: Date
+ * createdAt: Date
+ */
 
 const componentSchema = new mongoose.Schema(
   {
@@ -33,10 +32,17 @@ const componentSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
-    props: {
-      type: [propsSchema],
-      required: true,
-      default: [],
+    component_working: {
+      type: Number,
+      default: 0,
+    },
+    component_not_working: {
+      type: Number,
+      default: 0,
+    },
+    component_in_use: {
+      type: Number,
+      default: 0,
     },
     remark: {
       type: String,
@@ -58,11 +64,9 @@ const componentSchema = new mongoose.Schema(
 
 componentSchema.pre("save", function () {
   this.total_quantity = 0;
-  console.log(this.props);
-  for (let i = 0; i < this.props.length; i++) {
-    console.log(this.props[i].quantity_in_stock);
-    this.total_quantity += this.props[i].quantity_in_stock;
-  }
+  this.total_quantity += this.component_working;
+  this.total_quantity += this.component_not_working;
+  this.total_quantity += this.component_in_use;
 });
 
 componentSchema.post("deleteOne", function () {
