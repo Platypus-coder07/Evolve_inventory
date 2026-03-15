@@ -159,6 +159,24 @@ const searchComponentsWithPaginationService = async (
   };
 };
 
+const getAllComponentsWithPaginationService = async (page = 1, limit = 10) => {
+  const parsedPage = Number(page) || 1;
+  const parsedLimit = Number(limit) || 10;
+  const skip = (parsedPage - 1) * parsedLimit;
+
+  const [data, total] = await Promise.all([
+    Components.find().skip(skip).limit(parsedLimit),
+    Components.countDocuments(),
+  ]);
+
+  return {
+    data,
+    total,
+    page: parsedPage,
+    limit: parsedLimit,
+  };
+};
+
 const getComponentByIdService = async (id) => {
   if (!id) {
     throw new ApiError(400, "Id is required");
@@ -180,4 +198,5 @@ export {
   getComponentWithCategoryService,
   autocompleteComponentsService,
   searchComponentsWithPaginationService,
+  getAllComponentsWithPaginationService,
 };

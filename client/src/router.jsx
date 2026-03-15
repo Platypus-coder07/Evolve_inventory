@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import Layout from "./components/Layout";
-import AddComponent from "./pages/AddComponent";
+import AddComponent from "./components/AddComponent";
+import LabOverview from "./pages/LabOverview";
 
 
 const Dashboard = () => (
@@ -20,7 +21,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Dashboard />,
+        element: <LabOverview />,
       },
       {
         path: "inventory",
