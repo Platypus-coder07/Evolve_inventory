@@ -8,6 +8,7 @@ import {
   getComponentWithCategoryService,
   autocompleteComponentsService,
   searchComponentsWithPaginationService,
+  getAllComponentsWithPaginationService,
 } from "../services/component.services.js";
 
 const createComponent = asyncHandler(async (req, res) => {
@@ -116,6 +117,15 @@ const searchComponentsWithPagination = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, component, "Component fetched successfully"));
 });
 
+const getAllComponentsWithPagination = asyncHandler(async (req, res) => {
+  const { page, limit } = req.query;
+  const result = await getAllComponentsWithPaginationService(page, limit);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, result, "Components fetched successfully"));
+});
+
 export {
   createComponent,
   updateComponent,
@@ -124,4 +134,5 @@ export {
   getComponentWithCategory,
   autocompleteComponents,
   searchComponentsWithPagination,
+  getAllComponentsWithPagination,
 };

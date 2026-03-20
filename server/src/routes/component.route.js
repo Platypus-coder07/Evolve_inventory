@@ -7,6 +7,7 @@ import {
   getComponentWithCategory,
   autocompleteComponents,
   searchComponentsWithPagination,
+  getAllComponentsWithPagination,
 } from "../controllers/component.controller.js";
 
 const router = Router();
@@ -17,6 +18,7 @@ router.delete("/:id", deleteComponent);
 router.get("/category", getComponentWithCategory);
 router.get("/autocomplete", autocompleteComponents);
 router.get("/search", searchComponentsWithPagination);
+router.get("/all", getAllComponentsWithPagination);
 router.get("/:id", getComponentById);
 
 export default router;

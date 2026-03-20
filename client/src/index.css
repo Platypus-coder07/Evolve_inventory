@@ -1,1 +1,8 @@
-@import "tailwindcss";
+@import "tailwindcss"; 
+
+@theme {
+    --color-evolve-bg: #121212;
+    --color-evolve-surface: #1A1A1A;
+    --color-evolve-green: #00C951;
+    --font-sans: "Inter", "Helvetica", sans-serif;
+}
