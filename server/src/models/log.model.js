@@ -14,6 +14,7 @@ const logSchema = new mongoose.Schema(
             required: true
         },
         status: {
+            type: String,
             enum: [logStatus.OPEN, logStatus.CLOSED],
             default: logStatus.OPEN
         },

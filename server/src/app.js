@@ -22,10 +22,12 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 import userRouter from "./routes/user.route.js";
 import healthCheckRoute from "./routes/healthCheck.route.js";
 import componentRouter from "./routes/component.route.js";
+import requestRouter from "./routes/request.route.js";
 //use routes
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/health-check", healthCheckRoute);
 app.use("/api/v1/component", componentRouter);
+app.use("/api/v1/request", requestRouter);
 
 app.use(errorHandler);
 
