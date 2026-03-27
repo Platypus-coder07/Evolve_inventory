@@ -1,6 +1,5 @@
 import { X } from "lucide-react";
 
-// ADDED: updateError prop
 export default function EditModal({
   editData,
   setEditData,

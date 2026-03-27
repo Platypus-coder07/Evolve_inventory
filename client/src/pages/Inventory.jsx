@@ -5,7 +5,6 @@ import EditModal from "../components/EditModal";
 import DeleteModal from "../components/DeleteModal";
 
 export default function Inventory() {
-  // --- New State for Backend Data ---
   const [components, setComponents] = useState([]);
 
   const [query, setQuery] = useState("");
@@ -15,7 +14,6 @@ export default function Inventory() {
   const [editData, setEditData] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  // Replace: const categories = ["All Categories", "Microcontrollers", ...];
   const categoryMap = {
     "All Categories": "All Categories",
     "Micro Controller": "micro_controller",
@@ -32,16 +30,13 @@ export default function Inventory() {
   // --- API Fetch Logic ---
   const fetchComponents = async () => {
     try {
-      // Toggle between search and default get-all route.
-      // Using limit=50 so client-side category filtering works effectively on the current page.
       const endpoint = query
-        ? `/api/v1/component/search?query=${query}&page=1&limit=50`
-        : `/api/v1/component/all?page=1&limit=50`;
+        ? `/api/v1/component/search?query=${query}&page=1&limit=20`
+        : `/api/v1/component/all?page=1&limit=20`;
 
       const res = await fetch(endpoint);
       const json = await res.json();
 
-      // Assumes ApiResponse class maps to json.data.data
       if (json.success !== false && json.data?.data) {
         setComponents(json.data.data);
       }
@@ -54,7 +49,7 @@ export default function Inventory() {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchComponents();
-    }, 300); // 300ms debounce for typing
+    }, 300); // 300ms debounce
     return () => clearTimeout(timeoutId);
   }, [query]);
 
@@ -74,10 +69,8 @@ export default function Inventory() {
     );
   }, [components, query, category, status]);
 
-  // --- API Update Logic ---
   const [updateError, setUpdateError] = useState("");
 
-  // --- REWRITTEN API Update Logic ---
   const handleUpdate = async (e) => {
     e.preventDefault();
     setUpdateError(""); // Clear previous errors
@@ -91,28 +84,25 @@ export default function Inventory() {
           component_working: editData.component_working,
           component_not_working: editData.component_not_working,
           component_in_use: editData.component_in_use,
-          // Fallback applied here to bypass strict backend !remark validation
           remark: editData.remark || "None",
         }),
       });
 
       const json = await res.json();
 
-      // Check for success flag from your ApiResponse class
+      // Check for success flag 
       if (!res.ok || json.success === false) {
         throw new Error(json.message || "Failed to update component");
       }
 
-      fetchComponents(); // Refresh the table
-      setEditData(null); // Close modal
+      fetchComponents(); 
+      setEditData(null); 
     } catch (err) {
       console.error("Update error:", err);
-      setUpdateError(err.message); // Display error in modal
+      setUpdateError(err.message); 
     }
   };
 
-  // ... further down in the return statement, pass the error prop to the modal:
-  // <EditModal editData={editData} setEditData={setEditData} handleUpdate={handleUpdate} updateError={updateError} />
 
   // --- API Delete Logic ---
   const handleDelete = async () => {
@@ -122,8 +112,8 @@ export default function Inventory() {
       });
 
       if (res.ok) {
-        fetchComponents(); // Refresh the table
-        setDeleteId(null); // Close modal
+        fetchComponents();
+        setDeleteId(null); 
       } else {
         console.error("Failed to delete component");
       }
@@ -132,7 +122,6 @@ export default function Inventory() {
     }
   };
 
-  // --- UI Remains Exactly As Requested ---
   return (
     <div className="text-gray-200 font-sans max-w-7xl mx-auto relative">
       <div className="mb-6">

@@ -105,7 +105,6 @@ export default function LabOverview() {
         animate="show"
         className="grid grid-cols-1 lg:grid-cols-2 gap-6"
       >
-        {/* Placeholder for Bar Chart */}
         <motion.div
           variants={itemVariants}
           className="bg-[#1A1A1A] border border-gray-800 rounded-xl p-6 h-80 flex flex-col"
@@ -120,7 +119,6 @@ export default function LabOverview() {
           </div>
         </motion.div>
 
-        {/* Placeholder for Donut Chart */}
         <motion.div
           variants={itemVariants}
           className="bg-[#1A1A1A] border border-gray-800 rounded-xl p-6 h-80 flex flex-col"
