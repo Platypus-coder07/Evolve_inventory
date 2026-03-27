@@ -9,7 +9,7 @@ import Login from "./pages/Login";
 import Inventory from "./pages/Inventory";
 import LabOverview from "./pages/LabOverview";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Layout from "./components/Layout"; // Import your Layout
+import Layout from "./components/Layout"; 
 
 export default function App() {
   return (

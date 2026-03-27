@@ -24,7 +24,7 @@ export default function Layout() {
       name: "Lab Overview",
       path: "/",
       icon: LayoutDashboard,
-      roles: ["manager", "user"], // Swapped 'admin' for 'manager' to match your DB
+      roles: ["manager", "user"],
     },
     {
       name: "Components",
@@ -32,12 +32,11 @@ export default function Layout() {
       icon: Box,
       roles: ["manager", "user"],
     },
-    // Note: If Add Component is a Modal on the Inventory page, you might want to remove this route!
     {
       name: "Add Component",
       isAction: true,
       icon: PackagePlus,
-      roles: ["manager"], // Usually only managers add items
+      roles: ["manager"], // only managers add items
     },
     {
       name: "Borrow Component",

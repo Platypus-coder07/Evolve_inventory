@@ -33,7 +33,6 @@ export default function Login() {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Only send name if registering
         body: JSON.stringify(
           isRegistering
             ? formData
@@ -48,13 +47,10 @@ export default function Login() {
       }
 
       if (isRegistering) {
-        // Automatically switch to login mode after successful registration
         setIsRegistering(false);
         setError("Registration successful! Please log in.");
-        // Clear name/password, keep email
         setFormData({ ...formData, name: "", password: "" });
       } else {
-        // json.data.user comes from your ApiResponse structure
         login(json.data.user);
         navigate("/dashboard");
       }
