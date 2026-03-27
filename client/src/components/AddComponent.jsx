@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X, ChevronDown, Upload } from "lucide-react";
 
 export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
     component_in_use: 0,
   });
   const [loading, setLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -22,8 +24,52 @@ export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
     }));
   };
 
+  // Cloudinary Upload Handler
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImageUploading(true);
+    setError("");
+
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", uploadPreset);
+    data.append("cloud_name", cloudName);
+
+    try {
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: "POST",
+          body: data,
+        },
+      );
+
+      const uploadedImage = await res.json();
+
+      if (uploadedImage.secure_url) {
+        setFormData((prev) => ({ ...prev, image: uploadedImage.secure_url }));
+      } else {
+        throw new Error("Failed to upload image to Cloudinary");
+      }
+    } catch (err) {
+      setError("Image upload failed. Please try again.");
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.image) {
+      setError("Please upload an image before submitting.");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -34,9 +80,13 @@ export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) throw new Error("Failed to create component");
+      const json = await res.json();
 
-      onSuccess?.(); // Trigger a refetch of the inventory list
+      if (!res.ok || json.success === false) {
+        throw new Error(json.message || "Failed to create component");
+      }
+
+      onSuccess?.();
       onClose();
     } catch (err) {
       setError(err.message);
@@ -48,70 +98,111 @@ export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
-        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-[#1A1A1A] border border-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+        <div className="px-6 py-5 border-b border-gray-800 flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-white">
             Add New Component
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-white transition-colors"
           >
-            ✕
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
           {error && (
-            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">
+            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-lg">
               {error}
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 sm:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Name *
-              </label>
+              <label className="block text-xs text-gray-400 mb-1">Name *</label>
               <input
                 name="name"
                 required
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                className="w-full bg-[#121212] border border-gray-700 rounded-lg p-2.5 text-white focus:border-[#00C951] outline-none transition-all placeholder-gray-600 text-sm"
                 placeholder="e.g. ESP32 Microcontroller"
               />
             </div>
+
             <div className="col-span-2 sm:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs text-gray-400 mb-1">
                 Category *
               </label>
-              <input
-                name="category"
-                required
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                placeholder="e.g. Microcontrollers"
-              />
+              <div className="relative">
+                <select
+                  name="category"
+                  required
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="w-full bg-[#121212] border border-gray-700 rounded-lg p-2.5 text-white focus:border-[#00C951] outline-none transition-all text-sm appearance-none pr-10 cursor-pointer"
+                >
+                  <option value="" disabled hidden>
+                    Select Category...
+                  </option>
+                  <option value="micro_controller">Micro Controller</option>
+                  <option value="sensor">Sensor</option>
+                  <option value="actuator">Actuator</option>
+                  <option value="motor_driver">Motor Driver</option>
+                  <option value="power_supplies">Power Supplies</option>
+                  <option value="communication">Communication</option>
+                  <option value="other">Other</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-gray-500 pointer-events-none" />
+              </div>
             </div>
           </div>
 
+          {/* CLOUDINARY FILE UPLOAD SECTION */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Image URL *
+            <label className="block text-xs text-gray-400 mb-1">
+              Component Image *
             </label>
-            <input
-              name="image"
-              required
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              placeholder="https://example.com/image.png"
-            />
+            <div className="flex items-center gap-4 bg-[#121212] border border-gray-700 rounded-lg p-2.5">
+              <label className="flex items-center justify-center bg-[#1A1A1A] border border-gray-600 hover:border-[#00C951] text-gray-300 hover:text-[#00C951] transition-colors rounded-md px-3 py-1.5 cursor-pointer text-sm">
+                <Upload className="w-4 h-4 mr-2" />
+                Choose File
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
+
+              <div className="flex-1 text-sm text-gray-500 truncate">
+                {imageUploading ? (
+                  <span className="text-[#00C951] animate-pulse">
+                    Uploading to Cloudinary...
+                  </span>
+                ) : formData.image ? (
+                  <span className="text-gray-300">
+                    Image uploaded successfully
+                  </span>
+                ) : (
+                  <span>No file chosen</span>
+                )}
+              </div>
+
+              {formData.image && !imageUploading && (
+                <img
+                  src={formData.image}
+                  alt="Preview"
+                  className="h-8 w-8 object-cover rounded bg-gray-800"
+                />
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
+          <div className="grid grid-cols-3 gap-4 p-4 bg-[#121212]/50 rounded-lg border border-gray-800">
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 text-center">
                 Working
               </label>
               <input
@@ -119,12 +210,12 @@ export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
                 type="number"
                 min="0"
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md p-2 text-center outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full bg-[#121212] border border-gray-700 rounded-md p-2 text-center text-white focus:border-[#00C951] outline-none"
                 defaultValue="0"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 text-center">
                 Broken
               </label>
               <input
@@ -132,12 +223,12 @@ export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
                 type="number"
                 min="0"
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md p-2 text-center outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full bg-[#121212] border border-gray-700 rounded-md p-2 text-center text-white focus:border-[#00C951] outline-none"
                 defaultValue="0"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 text-center">
                 In Use
               </label>
               <input
@@ -145,39 +236,53 @@ export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
                 type="number"
                 min="0"
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md p-2 text-center outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full bg-[#121212] border border-gray-700 rounded-md p-2 text-center text-white focus:border-[#00C951] outline-none"
                 defaultValue="0"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2 sm:col-span-1">
+              <label className="block text-xs text-gray-400 mb-1">
+                Remark / Location
+              </label>
+              <input
+                name="remark"
+                onChange={handleChange}
+                className="w-full bg-[#121212] border border-gray-700 rounded-lg p-2.5 text-white focus:border-[#00C951] outline-none transition-all placeholder-gray-600 text-sm"
+                placeholder="e.g. Cabinet A"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs text-gray-400 mb-1">
                 Description
               </label>
               <textarea
                 name="description"
                 rows="2"
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+                className="w-full bg-[#121212] border border-gray-700 rounded-lg p-2.5 text-white focus:border-[#00C951] outline-none transition-all resize-none placeholder-gray-600 text-sm"
                 placeholder="Technical specifications..."
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
+          <div className="flex justify-end gap-3 mt-2 pt-5 border-t border-gray-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={loading}
-              className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || imageUploading}
+              className="px-4 py-2 text-sm bg-[#00C951] text-black font-semibold rounded-lg hover:bg-[#00b348] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Saving..." : "Save Component"}
             </button>
