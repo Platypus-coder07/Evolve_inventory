@@ -3,8 +3,14 @@ import { Search, Edit2, Trash2, Plus, Box } from "lucide-react";
 import CustomDropdown from "../components/CustomDropDown";
 import EditModal from "../components/EditModal";
 import DeleteModal from "../components/DeleteModal";
+import { useAuth } from "../context/AuthContext";
 
 export default function Inventory() {
+
+  const { user } = useAuth();
+  const userRole = user?.role;
+
+
   const [components, setComponents] = useState([]);
 
   const [query, setQuery] = useState("");
@@ -51,6 +57,13 @@ export default function Inventory() {
       fetchComponents();
     }, 300); // 300ms debounce
     return () => clearTimeout(timeoutId);
+  }, [query]);
+
+  useEffect(() => {
+    const handleNewComponent = () => fetchComponents();
+    window.addEventListener("componentAdded", handleNewComponent);
+    return () =>
+      window.removeEventListener("componentAdded", handleNewComponent);
   }, [query]);
 
   // Client-side filtering applies to the fetched components
@@ -166,7 +179,9 @@ export default function Inventory() {
               <th className="p-4">Remark (Loc)</th>
               <th className="p-4 text-center">Quantity</th>
               <th className="p-4 text-center">Status</th>
-              <th className="p-4 pr-6 text-right">Actions</th>
+              {userRole?.toLowerCase() === "manager" && (
+                <th className="p-4 pr-6 text-right">Actions</th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800/50">
@@ -222,24 +237,26 @@ export default function Inventory() {
                       </span>
                     )}
                   </td>
-                  <td className="p-4 pr-6 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      <button
-                        onClick={() => setEditData({ ...item })}
-                        className="text-gray-400 hover:text-blue-500 transition-colors"
-                        title="Edit"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteId(item._id)}
-                        className="text-gray-400 hover:text-red-500 transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+                  {userRole?.toLowerCase() === "manager" && (
+                    <td className="p-4 pr-6 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                        <button
+                          onClick={() => setEditData({ ...item })}
+                          className="text-gray-400 hover:text-[#00C951] transition-colors"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteId(item._id)}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               );
             })}

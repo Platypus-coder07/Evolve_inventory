@@ -5,7 +5,11 @@ import jwt from "jsonwebtoken";
 import { Wishlists } from "../models/wishlist.model.js";
 import connectDB from "../config/db.js";
 
-const MANAGER = ["manager@example.com"];
+const MANAGER = [
+  "manager@example.com",
+  "yatharthupmanyu@gmail.com",
+  "aadijaintikamgarh@gmail.com",
+];
 
 export const registerUserService = async (userData) => {
   await connectDB();
@@ -57,14 +61,13 @@ export const loginUserService = async (email, password) => {
   const token = jwt.sign(
     { id: user._id, role: user.role },
     process.env.JWT_SECRET || "secret_key",
-    { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
+    { expiresIn: process.env.JWT_EXPIRES_IN || "1d" },
   );
   console.log("login successfully done");
-  
+
   const loggedInUser = await Users.findById(user._id).select("-password");
   return { user: loggedInUser, token };
 };
-
 
 export const getAllUsersService = async () => {
   await connectDB();

@@ -87,7 +87,7 @@ export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
       }
 
       onSuccess?.();
-      onClose();
+      handleClose();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -95,6 +95,20 @@ export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
     }
   };
 
+  const handleClose = () => {
+    setFormData({
+      name: "",
+      image: "",
+      category: "",
+      description: "",
+      remark: "",
+      component_working: 0,
+      component_not_working: 0,
+      component_in_use: 0,
+    });
+    setError("");
+    onClose();
+  };
   if (!isOpen) return null;
 
   return (
@@ -211,7 +225,7 @@ export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
                 min="0"
                 onChange={handleChange}
                 className="w-full bg-[#121212] border border-gray-700 rounded-md p-2 text-center text-white focus:border-[#00C951] outline-none"
-                defaultValue="0"
+                value={formData.component_working}
               />
             </div>
             <div>
@@ -224,7 +238,7 @@ export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
                 min="0"
                 onChange={handleChange}
                 className="w-full bg-[#121212] border border-gray-700 rounded-md p-2 text-center text-white focus:border-[#00C951] outline-none"
-                defaultValue="0"
+                value={formData.component_not_working}
               />
             </div>
             <div>
@@ -237,7 +251,7 @@ export default function AddComponentModal({ isOpen, onClose, onSuccess }) {
                 min="0"
                 onChange={handleChange}
                 className="w-full bg-[#121212] border border-gray-700 rounded-md p-2 text-center text-white focus:border-[#00C951] outline-none"
-                defaultValue="0"
+                value={formData.component_in_use}
               />
             </div>
           </div>
