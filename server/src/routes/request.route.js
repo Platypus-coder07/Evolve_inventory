@@ -6,6 +6,7 @@ import {
   getUserRequestController,
   componentSubmitController,
   getReqByComp_UsrController,
+  getAllRequestsController,
 } from "../controllers/request.controller.js";
 import { verifyJWT, verifyManager } from "../middlewares/auth.middleware.js";
 
@@ -17,5 +18,6 @@ router.route("/component-submit/:reqId").patch(verifyJWT, verifyManager, compone
 router.route("/component/:componentId").get(verifyJWT, verifyManager, getComponentRequestController);
 router.route("/user").get(verifyJWT, getUserRequestController);
 router.route("/component/:componentId/user").get(verifyJWT, getReqByComp_UsrController);
+router.route("/all").get(verifyJWT, verifyManager, getAllRequestsController);
 
 export default router;
