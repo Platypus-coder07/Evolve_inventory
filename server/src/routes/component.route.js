@@ -8,6 +8,7 @@ import {
   autocompleteComponents,
   searchComponentsWithPagination,
   getAllComponentsWithPagination,
+  getLabStats,
 } from "../controllers/component.controller.js";
 
 const router = Router();
@@ -20,5 +21,6 @@ router.get("/autocomplete", autocompleteComponents);
 router.get("/search", searchComponentsWithPagination);
 router.get("/all", getAllComponentsWithPagination);
 router.get("/:id", getComponentById);
+router.get("/stats/lab", getLabStats);
 
 export default router;
