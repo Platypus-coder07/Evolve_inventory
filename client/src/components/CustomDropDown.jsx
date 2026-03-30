@@ -20,13 +20,15 @@ export default function CustomDropdown({
   }, []);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative w-full sm:w-auto" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between w-40 bg-[#121212] border ${isOpen ? "border-[#00C951]" : "border-gray-700"} text-gray-300 text-sm rounded-lg px-4 py-2 outline-none transition-colors hover:border-[#00C951]`}
+        className={`flex items-center justify-between w-full sm:w-40 bg-[#121212] border ${
+          isOpen ? "border-[#00C951]" : "border-gray-700"
+        } text-gray-300 text-sm rounded-lg px-4 py-2 outline-none transition-colors hover:border-[#00C951]`}
       >
         <span className="truncate">{value || placeholder}</span>
-        <ChevronDown className="w-4 h-4 text-gray-500 ml-2" />
+        <ChevronDown className="w-4 h-4 text-gray-500 ml-2 shrink-0" />
       </button>
       {isOpen && (
         <div className="absolute top-full left-0 mt-1 w-full bg-[#1A1A1A] border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
