@@ -1,15 +1,14 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Edit2, Trash2, Plus, Box } from "lucide-react";
+import { Search, Edit2, Trash2, Box } from "lucide-react";
 import CustomDropdown from "../components/CustomDropDown";
 import EditModal from "../components/EditModal";
 import DeleteModal from "../components/DeleteModal";
+import ComponentDetailsModal from "../components/ComponentDetailsModal"; 
 import { useAuth } from "../context/AuthContext";
 
 export default function Inventory() {
-
   const { user } = useAuth();
   const userRole = user?.role;
-
 
   const [components, setComponents] = useState([]);
 
@@ -19,16 +18,18 @@ export default function Inventory() {
 
   const [editData, setEditData] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [viewItem, setViewItem] = useState(null); 
+  const [updateError, setUpdateError] = useState("");
 
   const categoryMap = {
     "All Categories": "All Categories",
     "Micro Controller": "micro_controller",
-    "Sensor": "sensor",
-    "Actuator": "actuator",
+    Sensor: "sensor",
+    Actuator: "actuator",
     "Motor Driver": "motor_driver",
     "Power Supplies": "power_supplies",
-    "Communication": "communication",
-    "Other": "other",
+    Communication: "communication",
+    Other: "other",
   };
   const categories = Object.keys(categoryMap);
   const statuses = ["All Items", "In Stock", "Out of Stock"];
@@ -51,11 +52,10 @@ export default function Inventory() {
     }
   };
 
-  // Fetch on mount and when query changes (with debounce)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchComponents();
-    }, 300); // 300ms debounce
+    }, 300);
     return () => clearTimeout(timeoutId);
   }, [query]);
 
@@ -64,15 +64,13 @@ export default function Inventory() {
     window.addEventListener("componentAdded", handleNewComponent);
     return () =>
       window.removeEventListener("componentAdded", handleNewComponent);
-  }, [query]);
+  }, []);
 
-  // Client-side filtering applies to the fetched components
   const filteredData = useMemo(() => {
     return components.filter(
       (item) =>
         (item.name.toLowerCase().includes(query.toLowerCase()) ||
           item.category.toLowerCase().includes(query.toLowerCase())) &&
-        // Update the category check here to use categoryMap[category]
         (category === "All Categories" ||
           item.category === categoryMap[category]) &&
         (status === "All Items" ||
@@ -82,11 +80,9 @@ export default function Inventory() {
     );
   }, [components, query, category, status]);
 
-  const [updateError, setUpdateError] = useState("");
-
   const handleUpdate = async (e) => {
     e.preventDefault();
-    setUpdateError(""); // Clear previous errors
+    setUpdateError("");
 
     try {
       const res = await fetch("/api/v1/component/update", {
@@ -103,21 +99,18 @@ export default function Inventory() {
 
       const json = await res.json();
 
-      // Check for success flag 
       if (!res.ok || json.success === false) {
         throw new Error(json.message || "Failed to update component");
       }
 
-      fetchComponents(); 
-      setEditData(null); 
+      fetchComponents();
+      setEditData(null);
     } catch (err) {
       console.error("Update error:", err);
-      setUpdateError(err.message); 
+      setUpdateError(err.message);
     }
   };
 
-
-  // --- API Delete Logic ---
   const handleDelete = async () => {
     try {
       const res = await fetch(`/api/v1/component/${deleteId}`, {
@@ -126,7 +119,7 @@ export default function Inventory() {
 
       if (res.ok) {
         fetchComponents();
-        setDeleteId(null); 
+        setDeleteId(null);
       } else {
         console.error("Failed to delete component");
       }
@@ -136,18 +129,18 @@ export default function Inventory() {
   };
 
   return (
-    <div className="text-gray-200 font-sans max-w-7xl mx-auto relative">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white tracking-tight mb-1">
+    <div className="text-gray-200 font-sans max-w-7xl mx-auto relative px-2 sm:px-0">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-1">
           Components
         </h1>
-        <p className="text-sm text-gray-400">
+        <p className="text-xs sm:text-sm text-gray-400">
           Manage and track your components
         </p>
       </div>
 
-      <div className="bg-[#1A1A1A] border border-gray-800 rounded-xl p-4 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
-        <div className="relative w-full md:w-96">
+      <div className="bg-[#1A1A1A] border border-gray-800 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 flex flex-col lg:flex-row gap-3 sm:gap-4 items-start lg:items-center justify-between shadow-sm">
+        <div className="relative w-full lg:w-96 shrink-0">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
           <input
             type="text"
@@ -156,7 +149,7 @@ export default function Inventory() {
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <div className="flex w-full md:w-auto gap-3 z-10">
+        <div className="flex flex-col sm:flex-row w-full lg:w-auto gap-3 z-10 shrink-0">
           <CustomDropdown
             options={categories}
             value={category}
@@ -170,17 +163,25 @@ export default function Inventory() {
         </div>
       </div>
 
-      <div className="bg-[#1A1A1A] border border-gray-800 rounded-xl overflow-x-auto shadow-sm">
+      <div className="bg-[#1A1A1A] border border-gray-800 rounded-xl overflow-x-auto shadow-sm custom-scrollbar">
         <table className="w-full text-left border-collapse min-w-200">
           <thead>
-            <tr className="border-b border-gray-800 text-xs font-semibold text-white uppercase tracking-wider">
-              <th className="p-4 pl-6">Item Details</th>
-              <th className="p-4">Category</th>
-              <th className="p-4">Remark (Loc)</th>
-              <th className="p-4 text-center">Quantity</th>
-              <th className="p-4 text-center">Status</th>
+            <tr className="border-b border-gray-800 text-[10px] sm:text-xs font-semibold text-white uppercase tracking-wider">
+              <th className="p-3 sm:p-4 pl-4 sm:pl-6 whitespace-nowrap">
+                Item Details
+              </th>
+              <th className="p-3 sm:p-4 whitespace-nowrap">Category</th>
+              <th className="p-3 sm:p-4 whitespace-nowrap">Remark (Loc)</th>
+              <th className="p-3 sm:p-4 text-center whitespace-nowrap">
+                Quantity
+              </th>
+              <th className="p-3 sm:p-4 text-center whitespace-nowrap">
+                Status
+              </th>
               {userRole?.toLowerCase() === "manager" && (
-                <th className="p-4 pr-6 text-right">Actions</th>
+                <th className="p-3 sm:p-4 pr-4 sm:pr-6 text-right whitespace-nowrap">
+                  Actions
+                </th>
               )}
             </tr>
           </thead>
@@ -193,63 +194,79 @@ export default function Inventory() {
               return (
                 <tr
                   key={item._id}
-                  className="hover:bg-[#121212]/50 transition-colors group"
+                  onClick={() => setViewItem(item)} 
+                  className="hover:bg-[#121212]/50 transition-colors group cursor-pointer"
                 >
-                  <td className="p-4 pl-6 flex items-center gap-4">
-                    <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center shrink-0">
-                      <Box className="w-5 h-5 text-gray-400" />
+                  <td className="p-3 sm:p-4 pl-4 sm:pl-6 flex items-center gap-3 sm:gap-4">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#121212] border border-gray-700 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback if Cloudinary image fails to load
+                            e.target.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <Box className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+                      )}
                     </div>
-                    <div>
-                      <div className="font-medium text-gray-200">
+                    <div className="min-w-[150px] max-w-[250px]">
+                      <div className="font-medium text-gray-200 text-sm truncate group-hover:text-[#00C951] transition-colors">
                         {item.name}
                       </div>
-                      <div className="text-xs text-gray-500 mt-0.5">
+                      <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 truncate">
                         {item.description}
                       </div>
                     </div>
                   </td>
-                  <td className="p-4">
-                    <span className="text-[11px] font-medium tracking-wide px-2.5 py-1 bg-gray-800/80 border border-gray-700 rounded-full text-gray-300">
+                  <td className="p-3 sm:p-4 whitespace-nowrap">
+                    <span className="text-[10px] sm:text-[11px] font-medium tracking-wide px-2.5 py-1 bg-gray-800/80 border border-gray-700 rounded-full text-gray-300">
                       {Object.keys(categoryMap).find(
                         (key) => categoryMap[key] === item.category,
                       ) || item.category}
                     </span>
                   </td>
-                  <td className="p-4 text-sm text-gray-400">
+                  <td className="p-3 sm:p-4 text-xs sm:text-sm text-gray-400 whitespace-nowrap truncate max-w-[150px]">
                     {item.remark || "Unassigned"}
                   </td>
-                  <td className="p-4 text-center">
-                    <div className="text-sm font-semibold text-gray-200">
+                  <td className="p-3 sm:p-4 text-center whitespace-nowrap">
+                    <div className="text-xs sm:text-sm font-semibold text-gray-200">
                       {totalQuantity}
                     </div>
-                    <div className="text-[10px] text-gray-500 mt-0.5">
+                    <div className="text-[9px] sm:text-[10px] text-gray-500 mt-0.5">
                       Work: {item.component_working}
                     </div>
                   </td>
-                  <td className="p-4 text-center">
+                  <td className="p-3 sm:p-4 text-center whitespace-nowrap">
                     {item.component_working > 0 ? (
-                      <span className="text-xs font-medium px-2.5 py-1 border border-[#00C951]/30 text-[#00C951] rounded-full">
+                      <span className="text-[10px] sm:text-xs font-medium px-2.5 py-1 border border-[#00C951]/30 text-[#00C951] rounded-full">
                         In Stock
                       </span>
                     ) : (
-                      <span className="text-xs font-medium px-2.5 py-1 border border-red-500/30 text-red-500 rounded-full">
+                      <span className="text-[10px] sm:text-xs font-medium px-2.5 py-1 border border-red-500/30 text-red-500 rounded-full">
                         Out of Stock
                       </span>
                     )}
                   </td>
                   {userRole?.toLowerCase() === "manager" && (
-                    <td className="p-4 pr-6 text-right">
-                      <div className="flex items-center justify-end gap-3">
+                    <td className="p-3 sm:p-4 pr-4 sm:pr-6 text-right whitespace-nowrap">
+                      <div
+                        className="flex items-center justify-end gap-2 sm:gap-3"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <button
                           onClick={() => setEditData({ ...item })}
-                          className="text-gray-400 hover:text-[#00C951] transition-colors"
+                          className="text-gray-400 hover:text-[#00C951] transition-colors p-1"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeleteId(item._id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors"
+                          className="text-gray-400 hover:text-red-500 transition-colors p-1"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -264,10 +281,16 @@ export default function Inventory() {
         </table>
       </div>
 
+      <ComponentDetailsModal
+        item={viewItem}
+        onClose={() => setViewItem(null)}
+      />
+
       <EditModal
         editData={editData}
         setEditData={setEditData}
         handleUpdate={handleUpdate}
+        updateError={updateError}
       />
       <DeleteModal
         deleteId={deleteId}

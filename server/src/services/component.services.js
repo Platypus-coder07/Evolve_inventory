@@ -199,10 +199,51 @@ const getComponentByIdService = async (id) => {
   return component;
 };
 
+const getLabStatsService = async () => {
+  const stats = await Components.aggregate([
+    {
+      $facet: {
+        overview: [
+          {
+            $group: {
+              _id: null,
+              totalWorkingStock: { $sum: "$component_working" },
+              totalBrokenStock: { $sum: "$component_not_working" },
+              totalInUseStock: { $sum: "$component_in_use" },
+              totalUniqueItems: { $sum: 1 },
+            },
+          },
+        ],
+        categories: [
+          {
+            $group: {
+              _id: "$category",
+              count: { $sum: 1 },
+              totalWorking: { $sum: "$component_working" },
+            },
+          },
+          { $sort: { totalWorking: -1 } },
+        ],
+      },
+    },
+  ]);
+
+  return {
+    overview: stats[0]?.overview[0] || {
+      totalWorkingStock: 0,
+      totalBrokenStock: 0,
+      totalInUseStock: 0,
+      totalUniqueItems: 0,
+    },
+    categories: stats[0]?.categories || [],
+  };
+};
+
 export {
   createComponentService,
   updateComponentService,
   deleteComponentService,
+  getLabStatsService,
   getComponentByIdService,
   getComponentWithCategoryService,
   autocompleteComponentsService,

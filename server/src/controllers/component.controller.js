@@ -9,6 +9,7 @@ import {
   autocompleteComponentsService,
   searchComponentsWithPaginationService,
   getAllComponentsWithPaginationService,
+  getLabStatsService,
 } from "../services/component.services.js";
 
 const createComponent = asyncHandler(async (req, res) => {
@@ -126,6 +127,15 @@ const getAllComponentsWithPagination = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, result, "Components fetched successfully"));
 });
 
+const getLabStats = asyncHandler(async (req, res) => {
+  const statsData = await getLabStatsService();
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, statsData, "Lab statistics fetched successfully"),
+    );
+});
+
 export {
   createComponent,
   updateComponent,
@@ -135,4 +145,5 @@ export {
   autocompleteComponents,
   searchComponentsWithPagination,
   getAllComponentsWithPagination,
+  getLabStats,
 };

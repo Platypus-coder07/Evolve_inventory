@@ -63,6 +63,18 @@ const componentRequestService = async (reqId, status, remark) => {
 
     // checking is request rejected
     if (status == requestStatus.REJECTED) {
+      await Logs.create(
+        [
+          {
+            component: request.component,
+            quantity: request.quantity,
+            status: logStatus.REJECTED,
+            user: request.user,
+            remark: `Request rejected. Remark: ${remark ?? ""}`,
+          },
+        ],
+        { session },
+      );
       const deletedRequest = await Requests.findByIdAndDelete(reqId, { session });
       await session.commitTransaction();
       return deletedRequest;
@@ -242,6 +254,16 @@ const getReqByComp_Usr = async (componentId, userId) => {
   return requests;
 };
 
+// get all requests
+const getAllRequestsService = async () => {
+  await connectDB();
+  // Fetch all requests, sort by newest first
+  return await Requests.find()
+    .populate("user", "name email")
+    .populate("component", "name image")
+    .sort({ createdAt: -1 });
+};
+
 export {
   createRequestService,
   componentRequestService,
@@ -249,4 +271,5 @@ export {
   componentSubmitService,
   getReqByComp_Usr,
   getReqByUsr,
+  getAllRequestsService,
 };

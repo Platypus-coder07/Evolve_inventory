@@ -11,10 +11,12 @@ export default function EditModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <form
         onSubmit={handleUpdate}
-        className="bg-[#1A1A1A] border border-gray-800 rounded-2xl w-full max-w-md shadow-2xl flex flex-col overflow-hidden"
+        className="bg-[#1A1A1A] border border-gray-800 rounded-2xl w-full max-w-md shadow-2xl flex flex-col overflow-hidden max-h-[90vh]"
       >
-        <div className="flex justify-between items-center p-5 border-b border-gray-800">
-          <h2 className="text-lg font-semibold text-white">Edit Component</h2>
+        <div className="flex justify-between items-center p-4 sm:p-5 border-b border-gray-800 shrink-0">
+          <h2 className="text-base sm:text-lg font-semibold text-white">
+            Edit Component
+          </h2>
           <button
             type="button"
             onClick={() => setEditData(null)}
@@ -24,8 +26,7 @@ export default function EditModal({
           </button>
         </div>
 
-        <div className="p-5 flex flex-col gap-4">
-          {/* ADDED: Error Banner Display */}
+        <div className="p-4 sm:p-5 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
           {updateError && (
             <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-lg">
               {updateError}
@@ -33,7 +34,7 @@ export default function EditModal({
           )}
 
           <div>
-            <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">
+            <label className="block text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mb-1">
               Component Name (Read-Only)
             </label>
             <input
@@ -42,9 +43,10 @@ export default function EditModal({
               className="w-full bg-[#121212] border border-gray-800 rounded-lg p-2.5 text-gray-500 cursor-not-allowed text-sm"
             />
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="flex sm:block justify-between items-center">
+              <label className="block text-xs text-gray-400 mb-0 sm:mb-1">
                 Working
               </label>
               <input
@@ -57,11 +59,13 @@ export default function EditModal({
                     component_working: Number(e.target.value),
                   })
                 }
-                className="w-full bg-[#121212] border border-gray-700 rounded-lg p-2.5 text-white focus:border-[#00C951] outline-none text-center"
+                className="w-20 sm:w-full bg-[#121212] border border-gray-700 rounded-lg p-2 sm:p-2.5 text-white focus:border-[#00C951] outline-none text-center"
               />
             </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">In Use</label>
+            <div className="flex sm:block justify-between items-center">
+              <label className="block text-xs text-gray-400 mb-0 sm:mb-1">
+                In Use
+              </label>
               <input
                 type="number"
                 min="0"
@@ -72,11 +76,13 @@ export default function EditModal({
                     component_in_use: Number(e.target.value),
                   })
                 }
-                className="w-full bg-[#121212] border border-gray-700 rounded-lg p-2.5 text-white focus:border-[#00C951] outline-none text-center"
+                className="w-20 sm:w-full bg-[#121212] border border-gray-700 rounded-lg p-2 sm:p-2.5 text-white focus:border-[#00C951] outline-none text-center"
               />
             </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">Broken</label>
+            <div className="flex sm:block justify-between items-center">
+              <label className="block text-xs text-gray-400 mb-0 sm:mb-1">
+                Broken
+              </label>
               <input
                 type="number"
                 min="0"
@@ -87,10 +93,11 @@ export default function EditModal({
                     component_not_working: Number(e.target.value),
                   })
                 }
-                className="w-full bg-[#121212] border border-gray-700 rounded-lg p-2.5 text-white focus:border-[#00C951] outline-none text-center"
+                className="w-20 sm:w-full bg-[#121212] border border-gray-700 rounded-lg p-2 sm:p-2.5 text-white focus:border-[#00C951] outline-none text-center"
               />
             </div>
           </div>
+
           <div>
             <label className="block text-xs text-gray-400 mb-1">
               Remark / Location
@@ -105,17 +112,18 @@ export default function EditModal({
             />
           </div>
         </div>
-        <div className="p-5 border-t border-gray-800 flex justify-end gap-3">
+
+        <div className="p-4 sm:p-5 border-t border-gray-800 flex flex-col-reverse sm:flex-row justify-end gap-3 shrink-0">
           <button
             type="button"
             onClick={() => setEditData(null)}
-            className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm text-gray-400 hover:text-white transition-colors border border-gray-700 sm:border-transparent rounded-lg sm:rounded-none"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 text-sm bg-[#00C951] text-black font-semibold rounded-lg hover:bg-[#00b348] transition-colors"
+            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm bg-[#00C951] text-black font-semibold rounded-lg hover:bg-[#00b348] transition-colors"
           >
             Save Changes
           </button>

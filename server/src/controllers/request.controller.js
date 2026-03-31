@@ -7,6 +7,7 @@ import {
   getReqByComp_Usr,
   getComponentRequest,
   getReqByUsr,
+  getAllRequestsService,
 } from "../services/request.services.js";
 
 const createRequestController = asyncHandler(async (req, res) => {
@@ -78,4 +79,11 @@ const getReqByComp_UsrController = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, request, "Request fetched successfully"));
 });
 
-export { createRequestController, componentRequestController, getComponentRequestController, getUserRequestController, componentSubmitController, getReqByComp_UsrController }; 
+const getAllRequestsController = asyncHandler(async (req, res) => {
+  const requests = await getAllRequestsService();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, requests, "All requests fetched"));
+});
+
+export { createRequestController, componentRequestController, getComponentRequestController, getUserRequestController, componentSubmitController, getReqByComp_UsrController, getAllRequestsController }; 
