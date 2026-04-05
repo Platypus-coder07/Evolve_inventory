@@ -200,6 +200,7 @@ const getComponentByIdService = async (id) => {
 };
 
 const getLabStatsService = async () => {
+  await connectDB();
   const stats = await Components.aggregate([
     {
       $facet: {
