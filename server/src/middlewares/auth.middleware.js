@@ -3,7 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 import { Users } from "../models/user.model.js";
 import { userRole } from "../constants/constants.js";
-import { connectDB } from "../config/db.js";
+import connectDB from '../config/db.js'
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
   try {
