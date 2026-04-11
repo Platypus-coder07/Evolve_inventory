@@ -2,6 +2,8 @@ import {
   registerUserService,
   loginUserService,
   getAllUsersService,
+  resetUserPasswordService,
+  changePasswordService
 } from "../services/user.services.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -35,6 +37,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
 
   return res
@@ -60,4 +63,34 @@ export const getAllUsers = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, users, "Users fetched successfully"));
+});
+
+export const resetUserPassword = asyncHandler(async (req, res) => {
+  const {email} = req.body;
+
+  if(!email){
+    throw new ApiError(400, "Email is required");
+  }
+
+  const newPassword = await resetUserPasswordService(email);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, newPassword, "Password reset successfully"));
+})
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { currentPassword, newPassword } = req.body;
+
+  if(!currentPassword || !newPassword){
+    throw new ApiError(400, "Current password and new password are required");
+  }
+
+  const result = await changePasswordService(userId, currentPassword, newPassword);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, result, "Password changed successfully"));
+
 });

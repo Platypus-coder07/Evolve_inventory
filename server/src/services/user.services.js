@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 import { Wishlists } from "../models/wishlist.model.js";
 import connectDB from "../config/db.js";
+import crypto from "node:crypto";
 
 const MANAGER = [
   "manager@example.com",
@@ -75,3 +76,39 @@ export const getAllUsersService = async () => {
   await connectDB();
   return await Users.find({}).select("-password");
 };
+
+export const resetUserPasswordService = async (email) => {
+  await connectDB();
+
+  const user = await Users.findOne({email: email});
+  
+  if(!user){
+    throw new ApiError(404, "User not found");
+  }
+
+  let pass = crypto.createHash("sha256").update("password").digest("hex");
+  user.password = pass;
+  await user.save();
+
+  return { message: "Password reset successfully to 'password'. Please change it after logging in.", password: pass };
+
+}
+
+export const changePasswordService = async (userId, currentPassword, newPassword) => {
+  await connectDB();
+
+  const user = await Users.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  if(!await user.comparePassword(currentPassword)) {
+    throw new ApiError(401, "Current password is incorrect");
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  return { message: "Password changed successfully" , user };
+}

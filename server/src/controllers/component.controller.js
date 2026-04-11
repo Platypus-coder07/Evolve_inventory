@@ -145,5 +145,5 @@ export {
   autocompleteComponents,
   searchComponentsWithPagination,
   getAllComponentsWithPagination,
-  getLabStats,
+  getLabStats
 };
