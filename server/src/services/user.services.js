@@ -10,6 +10,7 @@ const MANAGER = [
   "yatharthupmanyu@gmail.com",
   "aadijaintikamgarh@gmail.com",
   "one@example.com",
+  "two@example.com",
 ];
 
 export const registerUserService = async (userData) => {

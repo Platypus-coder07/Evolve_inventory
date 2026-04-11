@@ -1,10 +1,17 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, Edit2, Trash2, Box } from "lucide-react";
+import {
+  Search,
+  Edit2,
+  Trash2,
+  Box,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import CustomDropdown from "../components/CustomDropDown";
 import EditModal from "../components/EditModal";
 import DeleteModal from "../components/DeleteModal";
 import BorrowModal from "../components/BorrowModal";
-import ComponentDetailsModal from "../components/ComponentDetailsModal"; 
+import ComponentDetailsModal from "../components/ComponentDetailsModal";
 import { useAuth } from "../context/AuthContext";
 
 export default function Inventory() {
@@ -17,9 +24,13 @@ export default function Inventory() {
   const [category, setCategory] = useState("All Categories");
   const [status, setStatus] = useState("All Items");
 
+  // --- NEW: Pagination States ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [editData, setEditData] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  const [viewItem, setViewItem] = useState(null); 
+  const [viewItem, setViewItem] = useState(null);
   const [isBorrowModalOpen, setIsBorrowModalOpen] = useState(false);
   const [updateError, setUpdateError] = useState("");
 
@@ -39,27 +50,31 @@ export default function Inventory() {
   // --- API Fetch Logic ---
   const fetchComponents = async () => {
     try {
+      // Updated to use currentPage dynamically
       const endpoint = query
-        ? `/api/v1/component/search?query=${query}&page=1&limit=20`
-        : `/api/v1/component/all?page=1&limit=20`;
+        ? `/api/v1/component/search?query=${query}&page=${currentPage}&limit=10`
+        : `/api/v1/component/all?page=${currentPage}&limit=10`;
 
       const res = await fetch(endpoint);
       const json = await res.json();
 
       if (json.success !== false && json.data?.data) {
         setComponents(json.data.data);
+        // Assuming your backend returns totalPages. If not, fallback to 1 to prevent breaking.
+        setTotalPages(json.data.totalPages || 1);
       }
     } catch (err) {
       console.error("Error fetching components:", err);
     }
   };
 
+  // Fetch when query OR currentPage changes
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchComponents();
     }, 300);
     return () => clearTimeout(timeoutId);
-  }, [query]);
+  }, [query, currentPage]);
 
   useEffect(() => {
     const handleNewComponent = () => fetchComponents();
@@ -148,19 +163,28 @@ export default function Inventory() {
             type="text"
             placeholder="Search items, descriptions..."
             className="w-full bg-[#121212] border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:border-[#00C951] outline-none"
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setCurrentPage(1); // Reset to page 1 when searching
+            }}
           />
         </div>
         <div className="flex flex-col sm:flex-row w-full lg:w-auto gap-3 z-10 shrink-0">
           <CustomDropdown
             options={categories}
             value={category}
-            onChange={setCategory}
+            onChange={(val) => {
+              setCategory(val);
+              setCurrentPage(1); // Reset to page 1 when filtering
+            }}
           />
           <CustomDropdown
             options={statuses}
             value={status}
-            onChange={setStatus}
+            onChange={(val) => {
+              setStatus(val);
+              setCurrentPage(1); // Reset to page 1 when filtering
+            }}
           />
         </div>
       </div>
@@ -207,7 +231,6 @@ export default function Inventory() {
                           alt={item.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            // Fallback if Cloudinary image fails to load
                             e.target.style.display = "none";
                           }}
                         />
@@ -283,6 +306,32 @@ export default function Inventory() {
         </table>
       </div>
 
+      {/* --- NEW: Pagination Controls --- */}
+      <div className="flex items-center justify-between mt-4 bg-[#1A1A1A] px-4 py-3 border border-gray-800 rounded-xl shadow-sm">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-300 bg-[#121212] border border-gray-700 rounded-lg hover:bg-gray-800 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Previous
+        </button>
+        <span className="text-sm text-gray-400">
+          Page <span className="font-semibold text-white">{currentPage}</span>{" "}
+          of <span className="font-semibold text-white">{totalPages}</span>
+        </span>
+        <button
+          onClick={() =>
+            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          }
+          disabled={currentPage === totalPages || totalPages === 0}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-300 bg-[#121212] border border-gray-700 rounded-lg hover:bg-gray-800 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          Next
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
       <ComponentDetailsModal
         item={viewItem}
         onClose={() => setViewItem(null)}
@@ -292,9 +341,9 @@ export default function Inventory() {
       <BorrowModal
         isOpen={isBorrowModalOpen}
         onClose={() => setIsBorrowModalOpen(false)}
-        component={viewItem} // Passes the item they are currently looking at
+        component={viewItem}
         onSuccess={() => {
-          fetchComponents(); // Refresh table so quantities update
+          fetchComponents();
           setIsBorrowModalOpen(false);
           setViewItem(null);
         }}

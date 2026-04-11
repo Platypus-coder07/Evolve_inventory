@@ -158,9 +158,12 @@ const searchComponentsWithPaginationService = async (
     },
   ]);
 
+  const totalPages = Math.ceil(total / parsedLimit);
+
   return {
     data: result[0].data,
     total: result[0].totalCount[0]?.count || 0,
+    totalPages,
     page: parsedPage,
     limit: parsedLimit,
   };
@@ -173,13 +176,16 @@ const getAllComponentsWithPaginationService = async (page = 1, limit = 10) => {
   const skip = (parsedPage - 1) * parsedLimit;
 
   const [data, total] = await Promise.all([
-    Components.find().skip(skip).limit(parsedLimit),
+    Components.find().sort({ createdAt: -1 }).skip(skip).limit(parsedLimit),
     Components.countDocuments(),
   ]);
+
+  const totalPages = Math.ceil(total / parsedLimit);
 
   return {
     data,
     total,
+    totalPages,
     page: parsedPage,
     limit: parsedLimit,
   };
