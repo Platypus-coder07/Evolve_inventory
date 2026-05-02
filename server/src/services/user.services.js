@@ -12,6 +12,7 @@ const MANAGER = [
   "aadijaintikamgarh@gmail.com",
   "one@example.com",
   "two@example.com",
+  "three@example.com",
 ];
 
 export const registerUserService = async (userData) => {
@@ -80,21 +81,31 @@ export const getAllUsersService = async () => {
 export const resetUserPasswordService = async (email) => {
   await connectDB();
 
-  const user = await Users.findOne({email: email});
-  
-  if(!user){
+  const user = await Users.findOne({ email: email });
+
+  if (!user) {
     throw new ApiError(404, "User not found");
   }
 
-  let pass = crypto.createHash("sha256").update("password").digest("hex");
+  // let pass = crypto.createHash("sha256").update("password").digest("hex");
+  // user.password = pass;
+  // await user.save();
+  let pass = crypto.randomBytes(5).toString("hex"); 
   user.password = pass;
   await user.save();
 
-  return { message: "Password reset successfully to 'password'. Please change it after logging in.", password: pass };
+  return {
+    message:
+      "Password reset successfully to 'password'. Please change it after logging in.",
+    password: pass,
+  };
+};
 
-}
-
-export const changePasswordService = async (userId, currentPassword, newPassword) => {
+export const changePasswordService = async (
+  userId,
+  currentPassword,
+  newPassword,
+) => {
   await connectDB();
 
   const user = await Users.findById(userId);
@@ -103,12 +114,12 @@ export const changePasswordService = async (userId, currentPassword, newPassword
     throw new ApiError(404, "User not found");
   }
 
-  if(!await user.comparePassword(currentPassword)) {
+  if (!(await user.comparePassword(currentPassword))) {
     throw new ApiError(401, "Current password is incorrect");
   }
 
   user.password = newPassword;
   await user.save();
 
-  return { message: "Password changed successfully" , user };
-}
+  return { message: "Password changed successfully", user };
+};

@@ -7,10 +7,14 @@ import {
   LogOut,
   Menu,
   X,
+  Lock,
+  Key,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
 import AddComponentModal from "./AddComponent";
+import ChangePasswordModal from "./ChangePassworModal";
+import ResetPasswordModal from "./ResetPasswordModal";
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -19,8 +23,12 @@ export default function Layout() {
   const userRole = user?.role || "user";
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+
+  // --- CHANGED: Password actions removed from this array ---
   const navLinks = [
     {
       name: "Lab Overview",
@@ -36,7 +44,7 @@ export default function Layout() {
     },
     {
       name: "Add Component",
-      isAction: true,
+      actionType: "addComponent",
       icon: PackagePlus,
       roles: ["manager"],
     },
@@ -54,6 +62,13 @@ export default function Layout() {
   };
 
   const closeSidebar = () => setIsSidebarOpen(false);
+
+  const handleActionClick = (actionType) => {
+    if (actionType === "addComponent") setIsAddModalOpen(true);
+    if (actionType === "changePassword") setIsChangePasswordOpen(true);
+    if (actionType === "resetPassword") setIsResetPasswordOpen(true);
+    closeSidebar();
+  };
 
   return (
     <div className="flex h-screen bg-[#121212] text-gray-300 font-sans w-full overflow-hidden">
@@ -90,14 +105,11 @@ export default function Layout() {
           {navLinks
             .filter((link) => link.roles.includes(userRole.toLowerCase()))
             .map((link) => {
-              if (link.isAction) {
+              if (link.actionType) {
                 return (
                   <button
                     key={link.name}
-                    onClick={() => {
-                      setIsAddModalOpen(true);
-                      closeSidebar();
-                    }}
+                    onClick={() => handleActionClick(link.actionType)}
                     className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-all font-medium text-sm"
                   >
                     <link.icon className="w-4 h-4" />
@@ -126,7 +138,30 @@ export default function Layout() {
             })}
         </nav>
 
-        <div className="p-4 border-t border-gray-800">
+        {/* --- CHANGED: Added flex-col and gap to stack buttons, moved password actions here --- */}
+        <div className="p-4 border-t border-gray-800 flex flex-col gap-1">
+          <button
+            onClick={() => handleActionClick("changePassword")}
+            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-all font-medium text-sm"
+          >
+            <Lock className="w-4 h-4" />
+            Change Password
+          </button>
+
+          {/* Only render this if the user is a manager */}
+          {userRole.toLowerCase() === "manager" && (
+            <button
+              onClick={() => handleActionClick("resetPassword")}
+              className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-all font-medium text-sm"
+            >
+              <Key className="w-4 h-4" />
+              Reset User Password
+            </button>
+          )}
+
+          {/* Tiny subtle divider between settings and logout */}
+          <div className="h-px bg-gray-800/50 my-1 mx-2"></div>
+
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-red-500/10 hover:text-red-500 transition-all font-medium text-sm"
@@ -167,6 +202,16 @@ export default function Layout() {
         onSuccess={() => {
           window.dispatchEvent(new Event("componentAdded"));
         }}
+      />
+
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
+
+      <ResetPasswordModal
+        isOpen={isResetPasswordOpen}
+        onClose={() => setIsResetPasswordOpen(false)}
       />
     </div>
   );
